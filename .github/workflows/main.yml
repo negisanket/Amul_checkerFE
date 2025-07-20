@@ -1,40 +1,30 @@
-name: Amul Product Availability Check
+name: Run Amul Product Checker Every 30 Minutes
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Every 30 minutes
-  workflow_dispatch:        # Allows manual trigger
+    - cron: "*/30 * * * *"  # Every 30 minutes
+  workflow_dispatch:       # Allow manual trigger
 
 jobs:
-  run-amul-check:
+  test:
     runs-on: ubuntu-latest
-
-    env:
-      GMAIL_USERNAME: ${{ secrets.SENDER_EMAIL }}
-      GMAIL_APP_PASSWORD: ${{ secrets.APP_PASS }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4
 
-      - name: Set up ChromeDriver
+      - name: Download Chrome
         run: |
-          sudo apt-get install -y unzip xvfb
-          wget -q -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/124.0.6367.91/chromedriver_linux64.zip
-          unzip /tmp/chromedriver.zip -d /tmp
-          sudo mv /tmp/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
 
-      - name: Run Maven tests (headless)
-        run: mvn clean test
+      - n
