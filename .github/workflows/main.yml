@@ -3,7 +3,7 @@ name: Run Amul Product Checker Every 30 Minutes
 on:
   schedule:
     - cron: "*/30 * * * *"  # Every 30 minutes
-  workflow_dispatch:       # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   test:
@@ -20,11 +20,22 @@ jobs:
           java-version: '17'
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4 wget
 
-      - name: Download Chrome
+      - name: Install Google Chrome
         run: |
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
 
-      - n
+      - name: Set up ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+        with:
+          chromedriver-version: 'latest'
+
+      - name: Set DISPLAY for headless
+        run: echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Run Maven tests with xvfb
+        run: xvfb-run --auto-servernum mvn clean test
