@@ -23,12 +23,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Chrome for Selenium
-        uses: browser-actions/setup-chrome@v1
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
 
-      - name: Run Maven Test
+      - name: Set up ChromeDriver
+        run: |
+          sudo apt-get install -y unzip xvfb
+          wget -q -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/124.0.6367.91/chromedriver_linux64.zip
+          unzip /tmp/chromedriver.zip -d /tmp
+          sudo mv /tmp/chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+
+      - name: Run Maven tests (headless)
         run: mvn clean test
-
-      - name: Upload test results (optional)
-        if: always()
-        u
