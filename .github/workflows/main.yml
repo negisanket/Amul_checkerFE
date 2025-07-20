@@ -2,7 +2,7 @@ name: Run Amul Product Checker Every 30 Minutes
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/30 * * * *"  # Every 30 minutes
   workflow_dispatch:
 
 jobs:
@@ -10,42 +10,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Install tools (Maven, unzip, jq, XVFB)
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y maven unzip wget jq xvfb
+          sudo apt-get install -y unzip xvfb libxi6 wget
 
-      - name: Install Chrome & ChromeDriver from CfT (last known good version)
+      - name: Install Google Chrome
         run: |
-          VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-            | jq -r '.channels.Stable.version')
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
 
-          echo "Using Chrome version: $VERSION"
+      - name: Set up ChromeDriver manually
+        run: |
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+          echo "Detected Chrome version: $CHROME_VERSION"
+          DRIVER_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build-with-downloads.json | \
+            jq -r --arg ver "$CHROME_VERSION" '.builds[$ver].version')
+          echo "Matching ChromeDriver version: $DRIVER_VERSION"
+          wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$DRIVER_VERSION/linux64/chromedriver-linux64.zip
+          unzip chromedriver-linux64.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+          chmod +x /usr/local/bin/chromedriver
 
-          CHROME_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-            | jq -r '.channels.Stable.downloads.chrome[] | select(.platform == "linux64") | .url')
-          DRIVER_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-            | jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform == "linux64") | .url')
-
-          wget -q "$CHROME_URL" -O chrome.zip
-          unzip chrome.zip -d chrome
-          sudo mv chrome/chrome-linux64/chrome /usr/local/bin/chrome
-
-          wget -q "$DRIVER_URL" -O chromedriver.zip
-          unzip chromedriver.zip -d chromedriver
-          sudo mv chromedriver/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          chmod +x /usr/local/bin/{chrome,chromedriver}
-
-      - name: Set DISPLAY for headless Chrome
+      - name: Set DISPLAY for headless
         run: echo "DISPLAY=:99" >> $GITHUB_ENV
 
       - name: Run Maven Selenium Tests
+        env:
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          APP_PASS: ${{ secrets.APP_PASS }}
         run: xvfb-run --auto-servernum mvn clean test
