@@ -87,8 +87,10 @@ public class Amul {
             sendEmail("negisanket@gmail.com", "Amul Product Availability Update", resultBuilder.toString());
     }
         private void sendEmail(String toEmail, String subject, String body) {
-    final String fromEmail = System.getenv("SENDER_EMAIL"); // From GitHub Secrets
-    final String appPassword = System.getenv("APP_PASS"); // From GitHub Secrets
+    // final String fromEmail = System.getenv("SENDER_EMAIL"); // From GitHub Secrets
+    // final String appPassword = System.getenv("APP_PASS"); // From GitHub Secrets
+         final String fromEmail = "negisanket@gmail.com"; // Replace with your Gmail
+        final String appPassword = "azjb oisd iyrt jcqs"; 
 
     if (fromEmail == null || appPassword == null) {
         System.out.println("❌ Email credentials not found in environment variables.");
