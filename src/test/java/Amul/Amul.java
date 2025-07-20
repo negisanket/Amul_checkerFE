@@ -24,10 +24,9 @@ public class Amul {
     @BeforeClass
     public void setup() {
         WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("headless");
+        options.setBinary("/usr/local/bin/chrome");
+        options.addArguments("--headless", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage");
         driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
