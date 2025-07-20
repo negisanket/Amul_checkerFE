@@ -82,8 +82,13 @@ public class Amul {
             sendEmail("negisanket@gmail.com", "Amul Product Availability Update", resultBuilder.toString());
     }
         private void sendEmail(String toEmail, String subject, String body) {
-        final String fromEmail = "negisanket@gmail.com"; // Replace with your Gmail
-        final String appPassword = "azjb oisd iyrt jcqs";    // Use App Password, not normal Gmail password
+    final String fromEmail = System.getenv("SENDER_EMAIL"); // From GitHub Secrets
+    final String appPassword = System.getenv("APP_PASS"); // From GitHub Secrets
+
+    if (fromEmail == null || appPassword == null) {
+        System.out.println("❌ Email credentials not found in environment variables.");
+        return;
+    }
 
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
