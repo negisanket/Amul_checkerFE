@@ -24,6 +24,10 @@ public class Amul {
     public void setup() {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage");
+        driver = new ChromeDriver(options);
+
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
 
